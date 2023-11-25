@@ -29,7 +29,7 @@ const (
 type User struct {
 	gorm.Model
 	Name      string
-	Email     string `gorm:"unique"`
+	Email     string `gorm:"uniqueIndex"`
 	Password  string
 	Status    StatusUser
 	TypeUser  TypeUser
@@ -75,6 +75,36 @@ func RegisterUser(userAPI *types.UserAPI) error {
 	userAPI.ID = user.ID
 
 	return nil
+}
+
+func Login(login *types.Login) (types.UserAPI, error) {
+
+	// TODO: Validar que exista el registro del usuario.
+
+	var user User
+	result := db.DB.Where("email = ?", login.Email).First(&user)
+	if result.RowsAffected < 1 {
+		// no existe el registro
+		return types.UserAPI{}, errors.New("el registro no existe")
+	}
+
+	// TODO: Revisar el password con el hash
+	ok := CheckPasswordHash(login.Password, user.Password)
+	if ok {
+		userAPI := types.UserAPI{
+			ID:        user.ID,
+			Name:      user.Name,
+			Email:     user.Email,
+			Password:  "",
+			Status:    string(user.Status),
+			Type:      string(user.TypeUser),
+			CountryID: user.CountryID,
+			Birthday:  user.Birthday,
+		}
+		return userAPI, nil
+	} else {
+		return types.UserAPI{}, errors.New("credenciales incorrectas")
+	}
 }
 
 func HashPassword(password string) (string, error) {
