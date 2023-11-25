@@ -11,16 +11,11 @@ func main() {
 
 	db.Init()
 
-	db.DB.AutoMigrate(&data.User{})
-
-	db.DB.Create(&data.User{
-		Name:  "Roberto",
-		Email: "roberto@gmail.com",
-	})
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hola, mundo")
-	})
+	db.DB.AutoMigrate(
+		&data.Country{},
+		&data.Art{},
+		&data.User{},
+	)
 
 	app.Listen(":3000")
 }
